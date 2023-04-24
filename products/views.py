@@ -2,12 +2,32 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import  JsonResponse
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer,UserSerializer,UserSerializerwithToken
 
 
 from .models import Order,OrderItem,Review,ShippingAddress,Product
 
+#https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 # Create your views here.
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    #https://github.com/jazzband/djangorestframework-simplejwt/blob/master/rest_framework_simplejwt/serializers.py
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        #data['username'] = self.user.username
+        #data['email'] = self.user.email
+        serializer = UserSerializerwithToken(self.user).data
+
+        for k, v in serializer.items():
+            data[k] = v
+        return data
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 @api_view(['GET'])
 def getRoutes(request):
@@ -28,6 +48,11 @@ def getRoutes(request):
 
     ]
     return Response(routes)
+@api_view(['GET'])
+def getUserProfile(request):
+    user = request.user
+    serializer = UserSerializer(user, many=False)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def getProducts(request):
