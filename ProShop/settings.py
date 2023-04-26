@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'products.apps.ProductsConfig',
+    'base.apps.BaseConfig',
 ]
 #https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html
 REST_FRAMEWORK = {
