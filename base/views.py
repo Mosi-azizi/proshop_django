@@ -9,7 +9,8 @@ from rest_framework.response import Response
 #https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-
+from django.contrib.auth.hashers import  make_password
+from rest_framework import status
 # Create your views here.
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -28,25 +29,24 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-@api_view(['GET'])
-def getRoutes(request):
-    routes = [
-        '/api/base/',
-        '/api/base/create/',
+@api_view(['POST'])
+#@permission_classes([IsAdminUser])
+def registerUser(request):
+    data = request.data
+    try:
+     user = User.objects.create_user(
+          first_name = data['name'],
+          username= data['email'],
+          email = data['email'],
+          password= make_password(data['password'])
+      )
+    except:
+        message = {'detail':'User with this email already exists'}
+        return  Response(message, status=status.HTTP_400_BAD_REQUEST)
+    serializer = UserSerializerwithToken(user, many=False)
+    return Response(serializer.data)
 
-        '/api/base/upload/',
 
-        '/api/base/<id>/reviews/'
-        
-        '/api/base/top/',
-
-        '/api/base/<id>/',
-
-        '/api/base/delete/<id>/',
-        '/api/base/<update>/<id>/',
-
-    ]
-    return Response(routes)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getUserProfile(request):
@@ -55,7 +55,7 @@ def getUserProfile(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def getUsers(request):
     users = User.objects.all()
     serializers = UserSerializer(users, many=True)
