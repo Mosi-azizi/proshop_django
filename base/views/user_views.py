@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -47,6 +46,22 @@ def registerUser(request):
         return  Response(message, status=status.HTTP_400_BAD_REQUEST)
     serializer = UserSerializerwithToken(user, many=False)
     return Response(serializer.data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateUserProfile(request):
+    user = request.user
+    serializer = UserSerializerwithToken(user, many=False)
+
+    data = request.data
+    user.first_name = data['name']
+    user.username =data['email']
+    user.email = data['email']
+    print(user.email,user.username)
+    if data['password'] !='':
+        user.password = make_password(data['password'])
+    user.save()
+    return  Response(serializer.data)
 
 
 @api_view(['GET'])
