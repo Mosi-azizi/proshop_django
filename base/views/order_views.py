@@ -10,7 +10,7 @@ from base.serializers import ProductSerializer,OrderSerializer
 from rest_framework import status
 
 @api_view(['POST'])
-#@permission_classes(['IsAuthenticated'])
+@permission_classes([IsAuthenticated])
 def addOrderItems(request):
     user = request.user
     data = request.data
@@ -55,3 +55,19 @@ def addOrderItems(request):
 
     serializer = OrderSerializer(order, many=False)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getOrderById(request, pk):
+    user = request.user
+
+    try:
+       order = Order.objects.get(_id=pk)
+       if user.is_staff or order.user == user:
+           serializer = OrderSerializer(order, many=False).data
+           return Response(serializer.data)
+       else:
+            message = {'Detail':'Not authorized to view this order'}
+            Response(message, status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response({'derail':'Order does not exitst '}, status=status.HTTP_400_BAD_REQUEST)
