@@ -8,7 +8,7 @@ from base.models import Order,OrderItem,ShippingAddress,Product
 from base.serializers import ProductSerializer,OrderSerializer,OrderItemSerializer
 
 from rest_framework import status
-
+from datetime import datetime
 
 
 
@@ -66,6 +66,15 @@ def getOrderItems(request):
     serializer = OrderItemSerializer(orderItems, many=True)
     return  Response(serializer.data)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getMyOrder(requset):
+    user = requset.user
+    order = user.order_set.all()
+    serizliser = OrderSerializer(order, many=True)
+    return Response(serizliser.data)
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getOrderById(request, pk):
@@ -81,3 +90,15 @@ def getOrderById(request, pk):
             Response(message, status=status.HTTP_400_BAD_REQUEST)
     except:
         return Response({'derail':'Order does not exitst '}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateOrderToPaid(request, pk):
+    order = Order.objects.get(_id=pk)
+
+    order.isPaid = True
+    order.paidAt = datetime.now()
+    order.save()
+
+    return  Response('Order was paid')
