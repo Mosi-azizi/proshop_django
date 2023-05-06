@@ -5,9 +5,13 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from base.models import Order,OrderItem,ShippingAddress,Product
-from base.serializers import ProductSerializer,OrderSerializer
+from base.serializers import ProductSerializer,OrderSerializer,OrderItemSerializer
 
 from rest_framework import status
+
+
+
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -57,6 +61,12 @@ def addOrderItems(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
+def getOrderItems(request):
+    orderItems = OrderItem.objects.all()
+    serializer = OrderItemSerializer(orderItems, many=True)
+    return  Response(serializer.data)
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getOrderById(request, pk):
     user = request.user
@@ -64,7 +74,7 @@ def getOrderById(request, pk):
     try:
        order = Order.objects.get(_id=pk)
        if user.is_staff or order.user == user:
-           serializer = OrderSerializer(order, many=False).data
+           serializer = OrderSerializer(order, many=False)
            return Response(serializer.data)
        else:
             message = {'Detail':'Not authorized to view this order'}
