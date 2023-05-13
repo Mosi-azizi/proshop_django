@@ -11,15 +11,12 @@ from django.contrib.auth.models import User
 from rest_framework import status
 
 
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getProducts(request):
     products = Product.objects.all()
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
-
 
 @api_view(['GET'])
 def getProduct(request, pk):
@@ -56,10 +53,7 @@ def updateProduct(request, pk):
     product.countInStock= data['countInStock']
     product.category= data['category']
     product.description= data['description']
-
-
     product.save()
-
 
     serializer = ProductSerializer(product, many=False)
     return Response(serializer.data)
@@ -70,3 +64,15 @@ def deleteProduct(request, pk):
     product = Product.objects.get(_id=pk)
     product.delete()
     return Response('Producted Deleted')
+
+@api_view(['POST'])
+def uploadImage(request):
+    data = request.data
+
+    product_id = data['product_id']
+    product = Product.objects.get(_id=product_id)
+
+    product_image = request.FILES.get('image')
+    product.save()
+
+    return Response('Image was uploded')
