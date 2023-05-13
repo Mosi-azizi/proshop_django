@@ -59,19 +59,20 @@ def addOrderItems(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-def getOrderItems(request):
-    orderItems = OrderItem.objects.all()
-    serializer = OrderItemSerializer(orderItems, many=True)
-    return  Response(serializer.data)
-
-
-@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getMyOrder(requset):
     user = requset.user
     order = user.order_set.all()
     serizliser = OrderSerializer(order, many=True)
     return Response(serizliser.data)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def getOrder(requset):
+    order = Order.objects.all()
+    serizliser = OrderSerializer(order, many=True)
+    return Response(serizliser.data)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -100,3 +101,14 @@ def updateOrderToPaid(request, pk):
     order.save()
 
     return Response('Order was paid')
+
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def updateOrderToDelivered(request, pk):
+    order = Order.objects.get(_id=pk)
+
+    order.isDelivered = True
+    Order.deliveredAt = datetime.now()
+    order.save()
+
+    return Response('order was delivered')
